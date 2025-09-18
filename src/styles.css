@@ -1,0 +1,53 @@
+@import "leaflet/dist/leaflet.css";
+
+html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
+#map { position: fixed; inset: 0; }
+
+/* Topbar responsive, wraps */
+.topbar {
+    position: fixed;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    background: rgba(255,255,255,0.95);
+    padding: 6px 8px;
+    border-radius: 12px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    z-index: 1000;
+}
+.badge { font-size: 12px; background: #f2f4f7; padding: 3px 6px; border-radius: 999px; }
+.actions { position: static; margin-left: auto; }
+.actions button {
+    border: none;
+    padding: 6px 10px;
+    border-radius: 10px;
+    background: white;
+    cursor: pointer;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+    font-size: 13px;
+}
+
+/* Popups Standorte */
+.popup-wrap { min-width: 200px; max-width: 280px; font-size: 13px; }
+.popup-title { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 4px; }
+.popup-desc { font-size: 12px; color: #6b7280; margin-bottom: 8px; }
+.task { display: grid; gap: 4px; margin-bottom: 8px; padding: 6px; background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; }
+.row { display: flex; gap: 4px; }
+.task input[type="text"] { flex: 1; padding: 6px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; }
+.task button { padding: 6px 8px; border: none; border-radius: 6px; background: #2563eb; color: white; cursor: pointer; font-size: 13px; }
+.task button[disabled] { background: #9ca3af; cursor: default; }
+.ok { color: #15803d; font-weight: 600; }
+.err { color: #b91c1c; font-size: 12px; }
+.done-line { margin-top: 4px; color: #15803d; font-weight: 600; }
+.hint { font-size: 11px; color: #6b7280; }
+
+@media (max-width: 480px) {
+    .topbar strong { font-size: 13px; }
+    .badge { font-size: 11px; }
+    .popup-wrap { max-width: 92vw; min-width: 70vw; font-size: 12px; }
+}
