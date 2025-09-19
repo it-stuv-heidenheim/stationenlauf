@@ -328,7 +328,7 @@ async function stopQrScanner() {
   }
 }
 
-async function showView(view: "map" | "list" | "reader") {
+async function showView(view: "map" | "list" | "reader" | "none") {
   mapView.style.display = "none"
   listView.style.display = "none"
   readerView.style.display = "none"
@@ -341,6 +341,8 @@ async function showView(view: "map" | "list" | "reader") {
     requestAnimationFrame(() => map?.invalidateSize())
   } else if (view === "list") {
     listView.style.display = "block"
+  } else if (view === "none") {
+
   } else {
     readerView.style.display = "block"
     startQrScanner()
@@ -376,7 +378,7 @@ mapBtn.addEventListener("click", () => {
   if (mapView.style.display === "none") {
     showView("map")
   } else {
-    showView("list")
+    showView("none")
   }
 })
 
@@ -384,7 +386,7 @@ listBtn.addEventListener("click", () => {
   if (listView.style.display === "none") {
     showView("list")
   } else {
-    showView("map")
+    showView("none")
   }
 })
 
