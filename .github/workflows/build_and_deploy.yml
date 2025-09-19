@@ -63,10 +63,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y rsync openssh-client
       
-          # sanity check
-          which rsync >/dev/null 2>&1 || { echo "rsync not found after install" >&2; exit 1; }
-          rsync --version
-      
           PORT="${{ secrets.SSH_PORT }}"
           if [ -z "$PORT" ]; then
             RSYNC_SSH="ssh"
@@ -74,7 +70,9 @@ jobs:
             RSYNC_SSH="ssh -p $PORT"
           fi
       
+          # force the remote rsync path so PATH is not needed
           rsync -avz --delete -e "$RSYNC_SSH" \
+            --rsync-path="/usr/bin/rsync" \
             dist/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.TARGET_DIR }}/"
 
       - name: Reload Nginx, optional
