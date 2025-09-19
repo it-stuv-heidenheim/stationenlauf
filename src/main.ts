@@ -1,6 +1,7 @@
 // Use Leaflet from your node_modules
 import * as L from "leaflet"
-import { Html5QrcodeScanner } from "html5-qrcode"
+import {type Html5QrcodeResult, Html5QrcodeScanner} from "html5-qrcode"
+import type {Html5QrcodeError} from "html5-qrcode/core";
 
 type Task = {
   id: string
@@ -306,13 +307,13 @@ function startQrScanner() {
   if (qrReader) return
   qrReader = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } })
   qrReader.render(
-    (decodedText, result) => {
+    (decodedText: string, result: Html5QrcodeResult) => {
       console.log(`Success: ${decodedText}`, result)
       qrReader?.clear()
       qrReader = null
     },
-    error => {
-      console.log("Error, ", error)
+    (errorMessage: string, error: Html5QrcodeError) => {
+      console.log(`Error: ${errorMessage}`, error)
     }
   )
 }
