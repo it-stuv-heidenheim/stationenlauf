@@ -57,6 +57,11 @@ jobs:
             ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
           fi
 
+      - name: Install rsync
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y rsync
+
       - name: Deploy via rsync
         run: |
           rsync -avz --delete -e "ssh -p ${{ secrets.SSH_PORT }}" \
