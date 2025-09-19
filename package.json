@@ -15,6 +15,7 @@
   "author": "Initial Code by Lisa Otto, refactoring and improvements by Julian Bantle-Müller",
   "license": "ISC",
   "dependencies": {
+    "html5-qrcode": "^2.3.8",
     "leaflet": "^1.9.4",
     "typescript": "^5.9.2"
   },

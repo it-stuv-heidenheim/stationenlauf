@@ -4,7 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Stationenlauf DHBW Heidenheim Ersti-Tage</title>
+    <link rel="icon" href="assets/favicon.ico" />
 
+    <script type="module" src="src/main.ts"></script>
     <!-- Your own styles -->
     <link rel="stylesheet" href="src/styles.css" />
 </head>
@@ -13,13 +15,18 @@
     <strong>Stationenlauf DHBW Heidenheim Ersti-Tage</strong>
     <span id="progressBadge" class="badge">0/0 Aufgaben erledigt</span>
     <div class="actions">
-        <button id="resetBtn">Fortschritt zurücksetzen</button>
+        <button id="listBtn"><img src="assets/list.svg" alt="Liste" style="height: 20px"></button>
+        <button id="mapBtn"><img src="assets/map.svg" alt="Karte" style="height: 20px"></button>
+        <button id="qrScannerBtn" style="margin-left: 10px"><img src="assets/qr_scanner.svg" alt="QR-Scanner" style="height: 20px"></button>
+        <button id="resetBtn" style="margin-left: 10px"><img src="assets/delete_history.svg" alt="Zurücksetzen" style="height: 20px"></button>
     </div>
 </div>
 
-<div id="map"></div>
 
-<!-- Load your TS entry as a module, bundlers like Vite/Webpack will handle it -->
-<script type="module" src="dist/main.js"></script>
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh">
+    <div id="reader" style="width: 600px"></div>
+    <div id="map" style="display: none"></div>
+    <div id="list" style="display: none"></div>
+</div>
 </body>
 </html>

@@ -1,5 +1,6 @@
 // Use Leaflet from your node_modules
 import * as L from "leaflet"
+import { Html5QrcodeScanner } from "html5-qrcode"
 
 type Task = {
   id: string
@@ -124,12 +125,9 @@ function stationFinished(station: Station): boolean {
   return station.tasks.every(t => s[t.id])
 }
 
-// ===================== OpenStreetMap, Leaflet =====================
-const map = L.map("map").setView(MAP_CENTER, 17)
-L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-  maxZoom: 19,
-  attribution: "&copy; OpenStreetMap-Mitwirkende"
-}).addTo(map)
+// ===================== OpenStreetMap, Leaflet, lazy init =====================
+let map: L.Map | null = null
+const markers = new Map<string, any>()
 
 function markerStyle(done: boolean) {
   return {
@@ -140,8 +138,6 @@ function markerStyle(done: boolean) {
     fillOpacity: 0.9
   }
 }
-
-const markers = new Map<string, any>()
 
 function updateProgressBadge(): void {
   let total = 0
@@ -264,8 +260,16 @@ function rebuildPopup(station: Station, circle: any): HTMLElement {
   return wrap
 }
 
-async function init(): Promise<void> {
+async function initMap(): Promise<void> {
+  if (map) return
+
   await ensureHashes()
+
+  map = L.map("map").setView(MAP_CENTER, 17)
+  L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+    maxZoom: 19,
+    attribution: "&copy; OpenStreetMap-Mitwirkende"
+  }).addTo(map)
 
   for (const st of STATIONS) {
     const circle = L.circleMarker([st.lat, st.lng], markerStyle(stationFinished(st))).addTo(map)
@@ -280,19 +284,112 @@ async function init(): Promise<void> {
   updateProgressBadge()
 }
 
-init()
+// ============================================================
 
-// Reset Button Handler
-function resetProgress(): void {
-  if (!confirm("Fortschritt auf diesem Gerät wirklich löschen")) return
-  localStorage.removeItem(STORAGE_KEY)
-  for (const st of STATIONS) {
-    const m = markers.get(st.id)
-    if (m) m.setStyle(markerStyle(false))
-  }
-  updateProgressBadge()
-  map.closePopup()
-  alert("Fortschritt gelöscht.")
+const resetBtn = document.getElementById("resetBtn")
+const qrBtn = document.getElementById("qrScannerBtn")
+const mapBtn = document.getElementById("mapBtn")
+const listBtn = document.getElementById("listBtn")
+
+const mapView = document.getElementById("map") as HTMLElement
+const listView = document.getElementById("list") as HTMLElement
+const readerView = document.getElementById("reader") as HTMLElement
+
+if (!resetBtn || !qrBtn || !mapBtn || !listBtn || !mapView || !listView || !readerView) {
+  throw new Error("Buttons and views not found")
 }
 
-document.getElementById("resetBtn")?.addEventListener("click", resetProgress)
+// ============== QR scanner lifecycle and view switching ==============
+let qrReader: Html5QrcodeScanner | null = null
+
+function startQrScanner() {
+  if (qrReader) return
+  qrReader = new Html5QrcodeScanner("reader", { fps: 10, qrbox: { width: 250, height: 250 } })
+  qrReader.render(
+    (decodedText, result) => {
+      console.log(`Success: ${decodedText}`, result)
+      qrReader?.clear()
+      qrReader = null
+    },
+    error => {
+      console.log("Error, ", error)
+    }
+  )
+}
+
+async function stopQrScanner() {
+  if (!qrReader) return
+  try {
+    await qrReader.clear()
+  } catch (e) {
+    console.warn("Failed to clear QR reader, ", e)
+  } finally {
+    qrReader = null
+  }
+}
+
+async function showView(view: "map" | "list" | "reader") {
+  mapView.style.display = "none"
+  listView.style.display = "none"
+  readerView.style.display = "none"
+
+  if (view !== "reader") await stopQrScanner()
+
+  if (view === "map") {
+    mapView.style.display = "block"
+    await initMap()
+    requestAnimationFrame(() => map?.invalidateSize())
+  } else if (view === "list") {
+    listView.style.display = "block"
+  } else {
+    readerView.style.display = "block"
+    startQrScanner()
+  }
+}
+
+// Reset Button Handler
+resetBtn.addEventListener("click", async () => {
+  console.log("Clack")
+  if (!confirm("Fortschritt auf diesem Gerät wirklich löschen")) return
+  localStorage.removeItem(STORAGE_KEY)
+
+  if (map) {
+    for (const st of STATIONS) {
+      const m = markers.get(st.id)
+      if (m) m.setStyle(markerStyle(false))
+    }
+    map.closePopup()
+  }
+
+  await stopQrScanner()
+  updateProgressBadge()
+  alert("Fortschritt gelöscht.")
+})
+
+// Nav buttons
+qrBtn.addEventListener("click", () => {
+  console.log("Click QR")
+  showView("reader")
+})
+
+mapBtn.addEventListener("click", () => {
+  if (mapView.style.display === "none") {
+    showView("map")
+  } else {
+    showView("list")
+  }
+})
+
+listBtn.addEventListener("click", () => {
+  if (listView.style.display === "none") {
+    showView("list")
+  } else {
+    showView("map")
+  }
+})
+
+// boot state, start on list
+listView.style.display = "block"
+mapView.style.display = "none"
+readerView.style.display = "none"
+updateProgressBadge()
