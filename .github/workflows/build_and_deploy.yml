@@ -62,18 +62,29 @@ jobs:
           set -e
           sudo apt-get update
           sudo apt-get install -y rsync openssh-client
-      
+
           PORT="${{ secrets.SSH_PORT }}"
+          REMOTE="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
           if [ -z "$PORT" ]; then
-            RSYNC_SSH="ssh"
+            SSH_CMD="ssh"
           else
-            RSYNC_SSH="ssh -p $PORT"
+            SSH_CMD="ssh -p $PORT"
           fi
-      
-          # force the remote rsync path so PATH is not needed
-          rsync -avz --delete -e "$RSYNC_SSH" \
-            --rsync-path="/usr/bin/rsync" \
-            dist/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.TARGET_DIR }}/"
+
+          REMOTE_RSYNC="$($SSH_CMD "$REMOTE" 'command -v rsync || which rsync || true')"
+          if [ -z "$REMOTE_RSYNC" ]; then
+            $SSH_CMD "$REMOTE" '
+              if command -v apt-get >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y rsync
+              elif command -v yum >/dev/null 2>&1; then sudo yum install -y rsync
+              elif command -v apk >/dev/null 2>&1; then sudo apk add rsync
+              else echo "No known package manager, cannot auto install rsync" && exit 1
+              fi
+            '
+            REMOTE_RSYNC="$($SSH_CMD "$REMOTE" 'command -v rsync || which rsync')"
+          fi
+
+          rsync -avz --delete -e "$SSH_CMD" --rsync-path="$REMOTE_RSYNC" \
+            dist/ "$REMOTE:${{ secrets.TARGET_DIR }}/"
 
       - name: Reload Nginx, optional
         run: |
