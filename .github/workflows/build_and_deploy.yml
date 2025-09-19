@@ -51,7 +51,11 @@ jobs:
 
       - name: Add known_hosts
         run: |
-          ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          if [ -z "${{ secrets.SSH_PORT }}" ]; then
+            ssh-keyscan "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
+          fi
 
       - name: Deploy via rsync
         run: |
