@@ -64,7 +64,19 @@ jobs:
 
       - name: Deploy via rsync
         run: |
-          rsync -avz --delete -e "ssh -p ${{ secrets.SSH_PORT }}" \
+          sudo apt-get update
+          sudo apt-get install -y rsync openssh-client
+          which rsync || { echo "rsync not found after install" >&2, exit 1, }
+          rsync --version
+      
+          PORT="${{ secrets.SSH_PORT }}"
+          if [ -z "$PORT" ]; then
+            RSYNC_SSH="ssh"
+          else
+            RSYNC_SSH="ssh -p $PORT"
+          fi
+        
+          rsync -avz --delete -e "$RSYNC_SSH" \
             dist/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.TARGET_DIR }}/"
 
       - name: Reload Nginx, optional
