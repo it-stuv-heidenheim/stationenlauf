@@ -57,16 +57,14 @@ jobs:
             ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
           fi
 
-      - name: Install rsync
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y rsync
-
       - name: Deploy via rsync
         run: |
+          set -e
           sudo apt-get update
           sudo apt-get install -y rsync openssh-client
-          which rsync || { echo "rsync not found after install" >&2, exit 1, }
+      
+          # sanity check
+          which rsync >/dev/null 2>&1 || { echo "rsync not found after install" >&2; exit 1; }
           rsync --version
       
           PORT="${{ secrets.SSH_PORT }}"
@@ -75,7 +73,7 @@ jobs:
           else
             RSYNC_SSH="ssh -p $PORT"
           fi
-        
+      
           rsync -avz --delete -e "$RSYNC_SSH" \
             dist/ "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ secrets.TARGET_DIR }}/"
 
