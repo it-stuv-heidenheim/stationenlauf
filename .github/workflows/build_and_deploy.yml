@@ -71,8 +71,8 @@ jobs:
             SSH_CMD="ssh -p $PORT"
           fi
       
-          $SSH_CMD "$REMOTE" "mkdir -p '${{ secrets.TARGET_DIR }}' && rm -rf '${{ secrets.TARGET_DIR }}'/*"
-          $SCP_CMD dist/* "$REMOTE:'${{ secrets.TARGET_DIR }}'/"
+          $SSH_CMD "$REMOTE" "mkdir -p ${{ secrets.TARGET_DIR }} && rm -rf ${{ secrets.TARGET_DIR }}/*"
+          $SCP_CMD dist/* "$REMOTE:${{ secrets.TARGET_DIR }}/"
 
       - name: Reload Nginx, optional
         run: |
