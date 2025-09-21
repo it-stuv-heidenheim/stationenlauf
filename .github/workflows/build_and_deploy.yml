@@ -57,20 +57,22 @@ jobs:
             ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
           fi
 
-      - name: Deploy via rsync
+      - name: Deploy via scp
         run: |
           set -e
-
+      
           PORT="${{ secrets.SSH_PORT }}"
           REMOTE="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
           if [ -z "$PORT" ]; then
+            SCP_CMD="scp -r"
             SSH_CMD="ssh"
           else
+            SCP_CMD="scp -P $PORT -r"
             SSH_CMD="ssh -p $PORT"
           fi
-
-          rsync -avz --delete -e "$SSH_CMD" \
-            dist/ "$REMOTE:${{ secrets.TARGET_DIR }}/"
+      
+          $SSH_CMD "$REMOTE" "mkdir -p '${{ secrets.TARGET_DIR }}' && rm -rf '${{ secrets.TARGET_DIR }}'/*"
+          $SCP_CMD dist/* "$REMOTE:'${{ secrets.TARGET_DIR }}'/"
 
       - name: Reload Nginx, optional
         run: |
