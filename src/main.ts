@@ -266,7 +266,14 @@ async function initMap(): Promise<void> {
 
   await ensureHashes()
 
-  map = L.map("map").setView(MAP_CENTER, 17)
+  map = L.map("map", {
+    zoomControl: false
+  }).setView(MAP_CENTER, 17)
+
+  L.control.zoom({
+    position: 'bottomright'
+  }).addTo(map);
+
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
     attribution: "&copy; OpenStreetMap-Mitwirkende"
