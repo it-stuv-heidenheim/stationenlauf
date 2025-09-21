@@ -1,14 +1,15 @@
 name: Build and Deploy
 
 on:
-  push:
-    branches: ["main"]
   workflow_dispatch:
     inputs:
       branch:
         description: "Branch to deploy"
         required: false
         default: "main"
+  push:
+    tags:
+      - 'v*'
 
 concurrency:
   group: deploy-production
@@ -17,12 +18,22 @@ concurrency:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Checkout
+      # Manual run, check out the chosen branch
+      - name: Checkout for manual run
+        if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/checkout@v4
         with:
-          ref: ${{ github.event.inputs.branch || 'main' }}
+          ref: ${{ inputs.branch }}
+          fetch-depth: 1
+
+      # Tag push, check out the tag commit
+      - name: Checkout for tag push
+        if: ${{ github.event_name == 'push' }}
+        uses: actions/checkout@v4
+        with:
+          # omit ref to use the event SHA, or explicitly use github.ref
+          ref: ${{ github.ref }}
           fetch-depth: 1
 
       - name: Setup pnpm
@@ -41,7 +52,6 @@ jobs:
 
       - name: Build
         run: pnpm run build
-        # if your Vite outDir is not "dist", update the rsync source below
 
       - name: Add SSH key
         run: |
@@ -57,34 +67,20 @@ jobs:
             ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
           fi
 
-      - name: Deploy via rsync
+      - name: Deploy via scp
         run: |
           set -e
-          sudo apt-get update
-          sudo apt-get install -y rsync openssh-client
-
           PORT="${{ secrets.SSH_PORT }}"
           REMOTE="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
           if [ -z "$PORT" ]; then
+            SCP_CMD="scp -r"
             SSH_CMD="ssh"
           else
+            SCP_CMD="scp -P $PORT -r"
             SSH_CMD="ssh -p $PORT"
           fi
-
-          REMOTE_RSYNC="$($SSH_CMD "$REMOTE" 'command -v rsync || which rsync || true')"
-          if [ -z "$REMOTE_RSYNC" ]; then
-            $SSH_CMD "$REMOTE" '
-              if command -v apt-get >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y rsync
-              elif command -v yum >/dev/null 2>&1; then sudo yum install -y rsync
-              elif command -v apk >/dev/null 2>&1; then sudo apk add rsync
-              else echo "No known package manager, cannot auto install rsync" && exit 1
-              fi
-            '
-            REMOTE_RSYNC="$($SSH_CMD "$REMOTE" 'command -v rsync || which rsync')"
-          fi
-
-          rsync -avz --delete -e "$SSH_CMD" --rsync-path="$REMOTE_RSYNC" \
-            dist/ "$REMOTE:${{ secrets.TARGET_DIR }}/"
+          $SSH_CMD "$REMOTE" "mkdir -p ${{ secrets.TARGET_DIR }} && rm -rf ${{ secrets.TARGET_DIR }}/*"
+          $SCP_CMD dist/* "$REMOTE:${{ secrets.TARGET_DIR }}/"
 
       - name: Reload Nginx, optional
         run: |
