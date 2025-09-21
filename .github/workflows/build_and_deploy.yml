@@ -60,8 +60,6 @@ jobs:
       - name: Deploy via rsync
         run: |
           set -e
-          sudo apt-get update
-          sudo apt-get install -y rsync openssh-client
 
           PORT="${{ secrets.SSH_PORT }}"
           REMOTE="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
@@ -71,19 +69,7 @@ jobs:
             SSH_CMD="ssh -p $PORT"
           fi
 
-          REMOTE_RSYNC="$($SSH_CMD "$REMOTE" 'command -v rsync || which rsync || true')"
-          if [ -z "$REMOTE_RSYNC" ]; then
-            $SSH_CMD "$REMOTE" '
-              if command -v apt-get >/dev/null 2>&1; then sudo apt-get update && sudo apt-get install -y rsync
-              elif command -v yum >/dev/null 2>&1; then sudo yum install -y rsync
-              elif command -v apk >/dev/null 2>&1; then sudo apk add rsync
-              else echo "No known package manager, cannot auto install rsync" && exit 1
-              fi
-            '
-            REMOTE_RSYNC="$($SSH_CMD "$REMOTE" 'command -v rsync || which rsync')"
-          fi
-
-          rsync -avz --delete -e "$SSH_CMD" --rsync-path="$REMOTE_RSYNC" \
+          rsync -avz --delete -e "$SSH_CMD" \
             dist/ "$REMOTE:${{ secrets.TARGET_DIR }}/"
 
       - name: Reload Nginx, optional
