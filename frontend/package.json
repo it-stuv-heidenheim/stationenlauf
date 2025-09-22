@@ -7,9 +7,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "watch": "concurrently 'tsc --watch' 'nodemon dist/main.js'",
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
+    "dev": "../node_modules/.bin/vite",
+    "build": "../node_modules/.bin/vite build",
+    "preview": "../node_modules/.bin/vite preview"
   },
   "keywords": [],
   "author": "Initial Code by Lisa Otto, refactoring and improvements by Julian Bantle-Müller",
