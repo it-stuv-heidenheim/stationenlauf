@@ -135,7 +135,7 @@ class DbConnector:
         """
         try:
             with self.conn.cursor() as cursor:
-                cursor.execute(insert_query, (station.description, str(station.location)))
+                cursor.execute(insert_query, (station.description, str(station.location.to_point())))
                 self.conn.commit()
                 return cursor.fetchone()[0]
         except (Exception, psycopg2.DatabaseError) as error:

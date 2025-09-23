@@ -7,6 +7,9 @@ class Location(BaseModel):
     latitude: float = Field(default=0)
     longitude: float = Field(default=0)
 
+    def to_point(self) -> (float,float):
+        return self.latitude, self.longitude
+
 
 class Station(BaseModel):
     uuid: str | None = Field(default=None, description="The unique identifier of the Station")
@@ -19,5 +22,6 @@ class Task(BaseModel):
     label: str = Field(default="")
     code: str = Field(default="")
     station_uuid: str = Field()
+
 
 
