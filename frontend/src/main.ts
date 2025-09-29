@@ -1,7 +1,7 @@
 // Use Leaflet from your node_modules
 import * as L from "leaflet"
-import {type Html5QrcodeResult, Html5QrcodeScanner} from "html5-qrcode"
-import type {Html5QrcodeError} from "html5-qrcode/core.js";
+import { type Html5QrcodeResult, Html5QrcodeScanner } from "html5-qrcode"
+import type { Html5QrcodeError } from "html5-qrcode/core.js"
 
 type Task = {
   id: string
@@ -261,6 +261,203 @@ function rebuildPopup(station: Station, circle: any): HTMLElement {
   return wrap
 }
 
+// ===================== LIST VIEW =====================
+
+function stationProgress(station: Station): { done: number, total: number } {
+  const s = readProgress()[station.id] || {}
+  let done = 0
+  for (const t of station.tasks) if (s[t.id]) done++
+  return { done, total: station.tasks.length }
+}
+
+function taskRow(
+  station: Station,
+  task: Task,
+  onAnyChange: () => void
+): HTMLElement {
+  const row = document.createElement("div")
+  row.className = "list-task"
+
+  const left = document.createElement("div")
+  left.className = "list-task-left"
+  left.textContent = task.label
+
+  const right = document.createElement("div")
+  right.className = "list-task-right"
+
+  const msg = document.createElement("div")
+  msg.className = "list-msg"
+
+  const input = document.createElement("input")
+  input.type = "text"
+  input.placeholder = "Zahlencode"
+  input.inputMode = "numeric"
+  input.pattern = "\\d*"
+
+  const btn = document.createElement("button")
+  btn.textContent = "Prüfen"
+
+  const markDoneState = (initial = false) => {
+    msg.textContent = initial ? "Bereits erledigt ✅" : "Richtig ✅"
+    msg.className = "list-msg ok"
+    input.disabled = true
+    btn.disabled = true
+  }
+
+  const verify = async () => {
+    const v = (input.value || "").trim()
+    if (!/^\d+$/.test(v)) {
+      msg.textContent = "Bitte nur Ziffern eingeben."
+      msg.className = "list-msg err"
+      return
+    }
+    const hex = await sha256hex(v)
+    if (hex === task.codeHash) {
+      setDone(station.id, task.id)
+      markDoneState()
+      updateProgressBadge()
+      onAnyChange()
+    } else {
+      msg.textContent = "Leider falsch, nochmal versuchen."
+      msg.className = "list-msg err"
+    }
+  }
+
+  btn.addEventListener("click", verify)
+  input.addEventListener("keydown", e => { if ((e as KeyboardEvent).key === "Enter") verify() })
+
+  if (isDone(station.id, task.id)) {
+    markDoneState(true)
+  }
+
+  right.appendChild(input)
+  right.appendChild(btn)
+
+  row.appendChild(left)
+  row.appendChild(right)
+  row.appendChild(msg)
+  return row
+}
+
+function stationCard(station: Station): HTMLElement {
+  const card = document.createElement("div")
+  card.className = "station-card"
+
+  const header = document.createElement("div")
+  header.className = "station-header"
+
+  const title = document.createElement("div")
+  title.className = "station-title"
+  title.textContent = station.name
+
+  const idpill = document.createElement("span")
+  idpill.className = "pill"
+  idpill.textContent = station.id
+
+  const donePill = document.createElement("span")
+  donePill.className = "pill"
+  const syncDonePill = () => {
+    const p = stationProgress(station)
+    donePill.textContent = `${p.done}/${p.total}`
+    donePill.setAttribute("data-ok", String(p.done === p.total))
+  }
+  syncDonePill()
+
+  const openMapBtn = document.createElement("button")
+  openMapBtn.className = "ghost"
+  openMapBtn.textContent = "Auf Karte zeigen"
+
+  openMapBtn.addEventListener("click", async () => {
+    await showView("map")
+    const m = markers.get(station.id)
+    if (m && map) {
+      m.openPopup()
+      map.setView([station.lat, station.lng], 18)
+    }
+  })
+
+  header.appendChild(title)
+  header.appendChild(idpill)
+  header.appendChild(donePill)
+  header.appendChild(openMapBtn)
+
+  const desc = document.createElement("div")
+  desc.className = "station-desc"
+  desc.textContent = station.description || ""
+
+  const tasksWrap = document.createElement("div")
+  tasksWrap.className = "tasks-wrap"
+
+  const onAnyChange = () => {
+    syncDonePill()
+    if (stationFinished(station)) {
+      card.setAttribute("data-finished", "true")
+    }
+  }
+
+  station.tasks.forEach(t => {
+    tasksWrap.appendChild(taskRow(station, t, onAnyChange))
+  })
+
+  if (stationFinished(station)) {
+    card.setAttribute("data-finished", "true")
+  }
+
+  card.appendChild(header)
+  if (station.description) card.appendChild(desc)
+  card.appendChild(tasksWrap)
+  return card
+}
+
+function buildListRoot(): HTMLElement {
+  const root = document.createElement("div")
+  root.className = "list-root"
+
+  const summary = document.createElement("div")
+  summary.className = "list-summary"
+
+  const h = document.createElement("strong")
+  h.textContent = "Alle Stationen"
+
+  const progress = document.createElement("span")
+  progress.id = "list-summary-progress"
+
+  const syncSummary = () => {
+    let total = 0, done = 0
+    const p = readProgress()
+    for (const st of STATIONS) {
+      total += st.tasks.length
+      for (const t of st.tasks) {
+        // @ts-ignore
+        if (p[st.id] && p[st.id][t.id]) done++
+      }
+    }
+    progress.textContent = `${done}/${total} erledigt`
+  }
+  syncSummary()
+
+  summary.appendChild(h)
+  summary.appendChild(progress)
+
+  const cardsWrap = document.createElement("div")
+  cardsWrap.className = "cards-wrap"
+
+  STATIONS.forEach(st => {
+    const card = stationCard(st)
+    cardsWrap.appendChild(card)
+  })
+
+  root.appendChild(summary)
+  root.appendChild(cardsWrap)
+  return root
+}
+
+function renderList(): void {
+  listView.innerHTML = ""
+  listView.appendChild(buildListRoot())
+}
+
+// ===================== MAP INIT =====================
 async function initMap(): Promise<void> {
   if (map) return
 
@@ -272,7 +469,7 @@ async function initMap(): Promise<void> {
 
   L.control.zoom({
     position: 'bottomright'
-  }).addTo(map);
+  }).addTo(map)
 
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     maxZoom: 19,
@@ -349,6 +546,8 @@ async function showView(view: "map" | "list" | "reader" | "none") {
     requestAnimationFrame(() => map?.invalidateSize())
   } else if (view === "list") {
     listView.style.display = "block"
+    await ensureHashes()
+    renderList()
   } else if (view === "none") {
 
   } else {
@@ -373,6 +572,7 @@ resetBtn.addEventListener("click", async () => {
 
   await stopQrScanner()
   updateProgressBadge()
+  if (listView.style.display !== "none") renderList()
   alert("Fortschritt gelöscht.")
 })
 
@@ -403,3 +603,4 @@ listView.style.display = "block"
 mapView.style.display = "none"
 readerView.style.display = "none"
 updateProgressBadge()
+ensureHashes().then(() => renderList())
