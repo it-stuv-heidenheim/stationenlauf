@@ -41,14 +41,17 @@ const completeTask = async (taskId: string, code: string) => {
 
 // TODO This counter appears to be broken
 export function updateProgressBadge(): void {
+  const progress = readProgress()
   let total = 0
   let done = 0
-  const progress = readProgress()
+
   for (const station of STATIONS) {
     total += station.tasks.length
-    const m = progress[station.id] || {}
-    for (const task of station.tasks) if (m[task.id]) done++
+    for (const task of station.tasks) {
+      if (progress[task.id]) done++
+    }
   }
+
   badgeEl.textContent = `${done}/${total} Aufgaben erledigt`
 }
 
