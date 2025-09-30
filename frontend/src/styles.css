@@ -1,9 +1,10 @@
 @import "../node_modules/leaflet/dist/leaflet.css";
 
+/* Base */
 html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif; }
 #map { position: fixed; inset: 0; }
 
-/* Topbar responsive, wraps */
+/* Topbar */
 .topbar {
     position: fixed;
     top: 8px;
@@ -32,85 +33,103 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, -apple
     font-size: 13px;
 }
 
-/* Popups Standorte */
-.popup-wrap { min-width: 200px; max-width: 280px; font-size: 13px; }
-.popup-title { display: flex; justify-content: space-between; align-items: center; gap: 6px; margin-bottom: 4px; }
-.popup-desc { font-size: 12px; color: #6b7280; margin-bottom: 8px; }
-.task { display: grid; gap: 4px; margin-bottom: 8px; padding: 6px; background: #fafafa; border: 1px solid #e5e7eb; border-radius: 8px; }
-.row { display: flex; gap: 4px; }
-.task input[type="text"] { flex: 1; padding: 6px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 13px; }
-.task button { padding: 6px 8px; border: none; border-radius: 6px; background: #2563eb; color: white; cursor: pointer; font-size: 13px; }
-.task button[disabled] { background: #9ca3af; cursor: default; }
-.ok { color: #15803d; font-weight: 600; }
-.err { color: #b91c1c; font-size: 12px; }
-.done-line { margin-top: 4px; color: #15803d; font-weight: 600; }
-.hint { font-size: 11px; color: #6b7280; }
-
-@media (max-width: 480px) {
-    .topbar strong { font-size: 13px; }
-    .badge { font-size: 11px; }
-    .popup-wrap { max-width: 92vw; min-width: 70vw; font-size: 12px; }
-}
-
-/* Views fill screen under topbar */
+/* Views under topbar */
 #list, #reader {
     position: fixed;
     inset: 0;
-    padding-top: 64px; /* leaves room for the topbar */
+    padding-top: 64px; /* space for topbar */
     overflow: auto;
     background: #f8fafc;
 }
 
-/* List view layout */
-.list-root { max-width: 900px; margin: 0 auto; padding: 12px; }
-.list-summary {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin: 6px 0 12px 0;
-    padding: 10px 12px;
-    background: white;
-    border: 1px solid #e5e7eb;
-    border-radius: 12px;
-}
-.cards-wrap { display: grid; gap: 12px; }
+/* ========= Leaflet popups ========= */
 
-/* Station card */
-.station-card {
+/* Limit popup width and improve spacing */
+.station-popup .leaflet-popup-content { margin: 10px 12px; width: 280px; }
+.station-popup .leaflet-popup-content .popup-wrap { font-size: 13px; display: grid; gap: 8px; }
+
+/* Title and progress line */
+.station-popup .popup-wrap h3 {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+}
+.station-popup .popup-wrap > div:first-of-type:not(.popup-row) {
+    font-size: 12px;
+    color: #374151;
+}
+
+/* Optional description paragraph */
+.station-popup .popup-wrap > p {
+    margin: 0;
+    font-size: 12px;
+    color: #6b7280;
+}
+
+/* Task rows */
+.station-popup .popup-row {
+    display: grid;
+    grid-template-columns: 1fr auto; /* label left, status pill right */
+    gap: 6px;
+    padding: 8px;
+    background: #fafafa;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+}
+
+.station-popup .popup-row .label {
+    font-weight: 600;
+    font-size: 13px;
+    color: #111827;
+}
+
+/* Footer hint */
+.station-popup .hint {
+    font-size: 11px;
+    color: #6b7280;
+}
+
+/* ========= List view ========= */
+
+.list-root { max-width: 900px; margin: 0 auto; padding: 12px; display: grid; gap: 12px; }
+
+.list-station {
     background: white;
     border: 1px solid #e5e7eb;
     border-radius: 12px;
     padding: 12px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    display: grid;
+    gap: 10px;
 }
-.station-card[data-finished="true"] {
+
+.list-station.done {
     border-color: #86efac;
     box-shadow: 0 2px 10px rgba(22,163,74,0.12);
 }
-.station-header {
+
+.list-station-header {
     display: grid;
-    grid-template-columns: 1fr auto auto auto;
+    grid-template-columns: 1fr auto auto;
     gap: 8px;
     align-items: center;
-    margin-bottom: 6px;
 }
-.station-title { font-weight: 700; }
-.station-desc { font-size: 13px; color: #6b7280; margin-bottom: 8px; }
 
-.pill {
+.list-station-header h3 {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 700;
+}
+
+.list-progress {
     font-size: 12px;
     background: #f3f4f6;
     padding: 3px 8px;
     border-radius: 999px;
     border: 1px solid #e5e7eb;
 }
-.pill[data-ok="true"] {
-    background: #ecfdf5;
-    color: #065f46;
-    border-color: #86efac;
-}
 
-.station-header .ghost {
+.list-station-header button {
     justify-self: end;
     font-size: 13px;
     border: 1px solid #e5e7eb;
@@ -120,9 +139,20 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, -apple
     cursor: pointer;
 }
 
-/* Tasks inside a card */
-.tasks-wrap { display: grid; gap: 8px; }
-.list-task {
+/* Optional description just after header */
+.list-station > p {
+    margin: 0;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+/* Task list and rows */
+.task-list {
+    display: grid;
+    gap: 8px;
+}
+
+.task-row {
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 8px;
@@ -130,50 +160,68 @@ html, body { margin: 0; padding: 0; height: 100%; font-family: system-ui, -apple
     border: 1px solid #e5e7eb;
     border-radius: 10px;
     background: #fafafa;
+    align-items: center;
 }
-.list-task-left { align-self: center; }
-.list-task-right { display: flex; gap: 6px; }
-.list-task-right input[type="text"] {
-    width: 140px;
-    padding: 6px;
-    border: 1px solid #d1d5db;
-    border-radius: 6px;
-    font-size: 13px;
-}
-.list-task-right button {
-    padding: 6px 8px;
-    border: none;
-    border-radius: 6px;
-    background: #2563eb;
-    color: white;
-    cursor: pointer;
-    font-size: 13px;
-}
-.list-task-right button[disabled] { background: #9ca3af; cursor: default; }
-.list-msg { grid-column: 1 / -1; font-size: 12px; }
-.list-msg.ok { color: #15803d; font-weight: 600; }
-.list-msg.err { color: #b91c1c; }
 
-/* Reader view spacing to avoid topbar overlap */
+.task-left { font-size: 14px; }
+
+.task-right {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+    align-items: center;
+}
+
+/* Status pill used in list view and popup */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    padding: 4px 8px;
+    border-radius: 999px;
+    border: 1px solid #e5e7eb;
+    background: #f9fafb;
+    white-space: nowrap;
+}
+.status-pill::before {
+    content: "";
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: #9ca3af;
+}
+.status-pill.ok {
+    color: #166534;
+    background: #f0fdf4;
+    border-color: #bbf7d0;
+}
+.status-pill.ok::before { background: #22c55e; }
+.status-pill.todo {
+    color: #374151;
+    background: #f9fafb;
+    border-color: #e5e7eb;
+}
+.status-pill.todo::before { background: #9ca3af; }
+
+/* Reader view centering */
 #reader { background: white; display: flex; align-items: start; justify-content: center; }
 #reader > div { margin-top: 12px; }
 
-/* Keep map full bleed, topbar floats on top as before */
-#map { position: fixed; inset: 0; }
-
-/* Small screens tweaks */
+/* Small screens */
 @media (max-width: 480px) {
-    .station-header {
+    .topbar strong { font-size: 13px; }
+    .badge { font-size: 11px; }
+
+    .station-popup .leaflet-popup-content { width: min(92vw, 360px); }
+
+    .list-station-header {
         grid-template-columns: 1fr auto;
         grid-auto-rows: min-content;
     }
-    .station-header .pill:nth-child(2),
-    .station-header .pill:nth-child(3),
-    .station-header .ghost {
-        justify-self: start;
-    }
-    .list-task {
-        grid-template-columns: 1fr;
-    }
-    .list-task-right { justify-content: space-between; }
+
+    .list-station-header button { justify-self: start; }
+
+    .task-row { grid-template-columns: 1fr; }
+    .task-right { justify-content: space-between; }
 }
