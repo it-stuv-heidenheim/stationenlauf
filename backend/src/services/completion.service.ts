@@ -16,10 +16,13 @@ export async function completeTask(taskId: string, user: string) {
   })
 }
 
-export async function listCompletionsForUser(user: string) {
-  return prisma.completedTask.findMany({
-    where: { user },
-    orderBy: { completedAt: "desc" },
-    include: { task: { include: { station: true } } }
-  })
+export async function getCompletedTasksByUser(
+  userId: string
+): Promise<Record<string, true>> {
+  const rows = await prisma.completedTask.findMany({
+    where: { user: userId },
+    select: { taskId: true },
+  });
+
+  return Object.fromEntries(rows.map((r) => [r.taskId, true] as const));
 }

@@ -1,6 +1,10 @@
 import { Router } from "express"
 import { asyncHandler } from "../../middleware/asyncHandler.js"
-import {completeTask, listCompletionsForUser, verifyCode} from "../../services/completion.service.js"
+import {
+  completeTask,
+  getCompletedTasksByUser,
+  verifyCode
+} from "../../services/completion.service.js"
 
 const tasksRouter: Router = Router()
 
@@ -25,7 +29,7 @@ tasksRouter.post(
 tasksRouter.get(
   "/completed/:user",
   asyncHandler(async (req, res) => {
-    const items = await listCompletionsForUser(req.params.user)
+    const items = await getCompletedTasksByUser(req.params.user)
     res.json(items)
   })
 )

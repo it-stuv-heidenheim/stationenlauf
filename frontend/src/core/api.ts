@@ -28,8 +28,8 @@ export async function fetchStations(): Promise<Station[]> {
 export async function getProgress(uid: string) {
   const res = await fetch(`${import.meta.env.VITE_API_URL ?? 'https://stationenlauf.stuv-heidenheim.de'}/api/v1/tasks/completed/${uid}`, {
   })
-  const {data}: { data: ApiTask[] } = await res.json()
-
+  const data: {[key: string]: true} = await res.json()
+  return data
 }
 
 export async function markTaskAsCompleted(user: string, taskId: string, code: string): Promise<boolean> {

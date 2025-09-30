@@ -1,10 +1,10 @@
 import type { Station } from "./core/types"
 // import { ensureStationHashes } from "./core/crypto"
-import {readProgress, setDone} from "./core/storage"
+import {readProgress, setDone, writeProgress} from "./core/storage"
 import { MapView } from "./views/mapView"
 import { renderList } from "./views/listView"
 import { createQrScanner } from "./views/qrScanner"
-import {fetchStations, markTaskAsCompleted} from "./core/api"
+import {fetchStations, getProgress, markTaskAsCompleted} from "./core/api"
 import {v4} from "uuid";
 
 const resetBtn = document.getElementById("resetBtn")
@@ -20,17 +20,21 @@ const badgeEl = document.getElementById("progressBadge") as HTMLElement
 
 let STATIONS: Station[] = []
 let mapController: MapView | null = null
+let userId = localStorage.getItem("user_id")
+if (!userId) localStorage.setItem("user_id", v4())
+userId = localStorage.getItem("user_id")!
 
-const fetchProgress = () => {
-
+const setProgress = async () => {
+  const progress = await getProgress(userId)
+  writeProgress(progress)
 }
 
 const completeTask = async (taskId: string, code: string) => {
-  if (localStorage.getItem("user_id") === null) {
+  if (userId === null) {
     alert("Unknown error. Please reload the page.")
     return
   }
-  const success = await markTaskAsCompleted(localStorage.getItem("user_id")!, taskId, code)
+  const success = await markTaskAsCompleted(userId, taskId, code)
   if (!success) {
     alert("Diese Aufgabe konnte nicht erledigt werden. Bitte versuche es erneut.")
     return
@@ -68,6 +72,7 @@ const qr = createQrScanner("reader", text => {
     return
   }
   completeTask(data.id, data.code)
+  showView("home")
 })
 
 type View = "home" | "map" | "list" | "reader" | "none"
@@ -83,7 +88,7 @@ async function showView(view: View) {
   listViewEl.style.display = "none"
   readerViewEl.style.display = "none"
   await stopQrIfNeeded(view)
-  if (view === prevView) {
+  if (view === prevView || view === "home") {
     console.log("No change")
     homeViewEl.style.display = "block"
     prevView = "home"
@@ -143,10 +148,9 @@ listBtn?.addEventListener("click", () => {
 })
 
 async function initApp() {
-  const userId = localStorage.getItem("user_id")
-  if (!userId) localStorage.setItem("user_id", v4())
   try {
     STATIONS = await fetchStations()
+    await setProgress()
     mapController = new MapView("map", STATIONS, { onProgressSync: updateProgressBadge })
     listViewEl.style.display = "none"
     mapViewEl.style.display = "none"
