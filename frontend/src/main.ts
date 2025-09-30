@@ -12,6 +12,7 @@ const qrBtn = document.getElementById("qrScannerBtn")
 const mapBtn = document.getElementById("mapBtn")
 const listBtn = document.getElementById("listBtn")
 
+const homeViewEl = document.getElementById("home") as HTMLElement
 const mapViewEl = document.getElementById("map") as HTMLElement
 const listViewEl = document.getElementById("list") as HTMLElement
 const readerViewEl = document.getElementById("reader") as HTMLElement
@@ -66,19 +67,26 @@ const qr = createQrScanner("reader", text => {
   completeTask(data.id, data.code)
 })
 
-type View = "map" | "list" | "reader" | "none"
+type View = "home" | "map" | "list" | "reader" | "none"
 
 async function stopQrIfNeeded(view: View) {
   if (view !== "reader" && qr.isActive()) await qr.stop()
 }
 
+let prevView: View = "none"
 async function showView(view: View) {
+  homeViewEl.style.display = "none"
   mapViewEl.style.display = "none"
   listViewEl.style.display = "none"
   readerViewEl.style.display = "none"
   await stopQrIfNeeded(view)
-
-  if (view === "map") {
+  if (view === prevView) {
+    console.log("No change")
+    homeViewEl.style.display = "block"
+    prevView = "home"
+    return
+  }
+  else if (view === "map") {
     mapViewEl.style.display = "block"
     await mapController?.init()
     requestAnimationFrame(() => mapController?.invalidateSize())
@@ -95,6 +103,7 @@ async function showView(view: View) {
     readerViewEl.style.display = "block"
     qr.start()
   }
+  prevView = view
 }
 
 const resetProgress = async (requireConfirm: boolean) => {
@@ -136,7 +145,7 @@ async function initApp() {
   try {
     STATIONS = await fetchStations()
     mapController = new MapView("map", STATIONS, { onProgressSync: updateProgressBadge })
-    listViewEl.style.display = "block"
+    listViewEl.style.display = "none"
     mapViewEl.style.display = "none"
     readerViewEl.style.display = "none"
     updateProgressBadge()
