@@ -9,7 +9,11 @@ type Progress = Record<string, boolean>
  */
 export function readProgress(): Progress {
   try {
-    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}")
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) {
+      return {}
+    }
+    return JSON.parse(raw)
   } catch {
     return {}
   }
