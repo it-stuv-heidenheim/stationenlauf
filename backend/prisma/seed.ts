@@ -1,5 +1,4 @@
 import { PrismaClient } from "@prisma/client"
-import { randomUUID } from "crypto"
 
 const prisma = new PrismaClient()
 
@@ -68,9 +67,9 @@ async function main() {
         description: station.description,
         tasks: {
           create: station.tasks.map(task => ({
-            id: randomUUID(),
+            id: task.id,
             label: task.label,
-            code: randomUUID()
+            code: task.code
           }))
         }
       }
