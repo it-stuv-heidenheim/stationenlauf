@@ -20,5 +20,5 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true
   },
-  "include": ["src", "prisma"]
+  "include": ["src"]
 }
