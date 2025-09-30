@@ -3,3 +3,5 @@
 backend/prisma/dev.db
 backend/prisma/migrations
 backend/dist
+frontend/.env.development
+frontend/.env.production
