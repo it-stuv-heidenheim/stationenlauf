@@ -33,13 +33,29 @@ export async function getProgress(uid: string) {
 }
 
 export async function markTaskAsCompleted(user: string, taskId: string, code: string): Promise<boolean> {
-  console.log('Completing: ', JSON.stringify({user: user, code: code}))
-  const res = await fetch(`${import.meta.env.VITE_API_URL ?? 'https://stationenlauf.stuv-heidenheim.de'}/api/v1/tasks/${taskId}/complete`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json"
-    },
-    body: JSON.stringify({user: user, code: code}),
-  })
-  return res.ok
+  console.log('Completing: ', JSON.stringify({ user, code }))
+
+  const res = await fetch(
+    `${import.meta.env.VITE_API_URL ?? 'https://stationenlauf.stuv-heidenheim.de'}/api/v1/tasks/${taskId}/complete`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json"
+      },
+      body: JSON.stringify({ user, code }),
+    }
+  )
+
+  if (res.status === 409) {
+    alert("Station wurde schon gescannt.")
+    return true
+  }
+
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}))
+    console.error("Error completing task", body)
+    return false
+  }
+
+  return true
 }

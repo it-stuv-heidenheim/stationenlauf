@@ -1,4 +1,5 @@
 import { prisma } from "../db/prisma.js"
+import {Prisma} from "@prisma/client";
 
 export async function verifyCode(code: string, task: string) {
   const data = await prisma.task.findUnique({
@@ -10,10 +11,16 @@ export async function verifyCode(code: string, task: string) {
 }
 
 export async function completeTask(taskId: string, user: string) {
-  // unique constraint on [taskId, user] makes this idempotent
-  return prisma.completedTask.create({
-    data: { taskId, user }
-  })
+  try {
+    return await prisma.completedTask.create({
+      data: { taskId, user }
+    })
+  } catch (e) {
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === 'P2002') {
+      throw new Error('Task already completed for this user')
+    }
+    throw e
+  }
 }
 
 export async function getCompletedTasksByUser(
