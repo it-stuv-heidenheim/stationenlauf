@@ -6,7 +6,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(cors({origin: [
-    'localhost:5173',
+    'http://localhost:5173',
     'https://stationenlauf.stuv-heidenheim.de'
   ]
 }));
