@@ -15,11 +15,14 @@ concurrency:
   group: deploy-production
   cancel-in-progress: true
 
+env:
+  FRONTEND_DIR: frontend
+  BACKEND_DIR: backend
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      # Manual run, check out the chosen branch
       - name: Checkout for manual run
         if: ${{ github.event_name == 'workflow_dispatch' }}
         uses: actions/checkout@v4
@@ -27,12 +30,10 @@ jobs:
           ref: ${{ inputs.branch }}
           fetch-depth: 1
 
-      # Tag push, check out the tag commit
       - name: Checkout for tag push
         if: ${{ github.event_name == 'push' }}
         uses: actions/checkout@v4
         with:
-          # omit ref to use the event SHA, or explicitly use github.ref
           ref: ${{ github.ref }}
           fetch-depth: 1
 
@@ -47,11 +48,23 @@ jobs:
           node-version: "20"
           cache: "pnpm"
 
-      - name: Install dependencies
+      - name: Install deps at repo root
         run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm run build
+      # If your frontend has its own package.json in ./frontend
+      - name: Build frontend
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+
+      # Build backend TS to dist, generate Prisma client in CI to catch issues early
+      - name: Build backend
+        working-directory: ${{ env.BACKEND_DIR }}
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm prisma generate
+          pnpm run build
 
       - name: Add SSH key
         run: |
@@ -67,7 +80,7 @@ jobs:
             ssh-keyscan -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
           fi
 
-      - name: Deploy via scp
+      - name: Deploy frontend
         run: |
           set -e
           PORT="${{ secrets.SSH_PORT }}"
@@ -79,8 +92,54 @@ jobs:
             SCP_CMD="scp -P $PORT -r"
             SSH_CMD="ssh -p $PORT"
           fi
-          $SSH_CMD "$REMOTE" "mkdir -p ${{ secrets.TARGET_DIR }} && rm -rf ${{ secrets.TARGET_DIR }}/*"
-          $SCP_CMD dist/* "$REMOTE:${{ secrets.TARGET_DIR }}/"
+          $SSH_CMD "$REMOTE" "mkdir -p ${{ secrets.FRONTEND_TARGET_DIR }} && rm -rf ${{ secrets.FRONTEND_TARGET_DIR }}/*"
+          $SCP_CMD "${{ env.FRONTEND_DIR }}/dist/"* "$REMOTE:${{ secrets.FRONTEND_TARGET_DIR }}/"
+
+      - name: Deploy backend code and prisma
+        run: |
+          set -e
+          PORT="${{ secrets.SSH_PORT }}"
+          REMOTE="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
+          if [ -z "$PORT" ]; then
+            SCP_CMD="scp -r"
+            SSH_CMD="ssh"
+          else
+            SCP_CMD="scp -P $PORT -r"
+            SSH_CMD="ssh -p $PORT"
+          fi
+          # create target and upload dist, prisma, package files
+          $SSH_CMD "$REMOTE" "mkdir -p ${{ secrets.BACKEND_TARGET_DIR }}"
+          $SCP_CMD "${{ env.BACKEND_DIR }}/dist" "$REMOTE:${{ secrets.BACKEND_TARGET_DIR }}/"
+          $SCP_CMD "${{ env.BACKEND_DIR }}/prisma" "$REMOTE:${{ secrets.BACKEND_TARGET_DIR }}/"
+          $SCP_CMD "${{ env.BACKEND_DIR }}/package.json" "$REMOTE:${{ secrets.BACKEND_TARGET_DIR }}/"
+          $SCP_CMD "${{ env.BACKEND_DIR }}/pnpm-lock.yaml" "$REMOTE:${{ secrets.BACKEND_TARGET_DIR }}/"
+
+      - name: Install backend deps, migrate, restart service
+        run: |
+          set -e
+          PORT="${{ secrets.SSH_PORT }}"
+          REMOTE="${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}"
+          if [ -z "$PORT" ]; then
+            SSH_CMD="ssh"
+          else
+            SSH_CMD="ssh -p $PORT"
+          fi
+          $SSH_CMD "$REMOTE" bash -lc '
+            set -e
+            cd "${{ secrets.BACKEND_TARGET_DIR }}"
+            if ! command -v pnpm >/dev/null 2>&1; then
+              if command -v corepack >/dev/null 2>&1; then
+                corepack enable
+                corepack prepare pnpm@9 --activate
+              else
+                echo "pnpm not found and corepack not available, please install pnpm on the server"
+                exit 1
+              fi
+            fi
+            pnpm install --prod --frozen-lockfile
+            pnpm run migrate:deploy
+            sudo systemctl restart "${{ secrets.BACKEND_SERVICE_NAME }}"
+          '
 
       - name: Reload Nginx, optional
         run: |
