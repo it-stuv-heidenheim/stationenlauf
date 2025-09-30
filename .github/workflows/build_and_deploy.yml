@@ -48,9 +48,6 @@ jobs:
           node-version: "20"
           cache: "pnpm"
 
-      - name: Install deps at repo root
-        run: pnpm install --frozen-lockfile
-
       # If your frontend has its own package.json in ./frontend
       - name: Build frontend
         working-directory: ${{ env.FRONTEND_DIR }}
