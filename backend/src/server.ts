@@ -14,6 +14,7 @@ app.use(express.json());
 
 // Attach the router
 app.use("/api", router);
+app.use("/api/health", (req, res) => res.send("OK"))
 
 
 app.listen(PORT, () => {
