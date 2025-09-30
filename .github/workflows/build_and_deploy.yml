@@ -137,10 +137,10 @@ jobs:
             fi
             pnpm install --prod --frozen-lockfile
             pnpm run migrate:deploy
-            sudo systemctl restart "${{ secrets.BACKEND_SERVICE_NAME }}"
+            systemctl restart "${{ secrets.BACKEND_SERVICE_NAME }}"
           '
 
       - name: Reload Nginx, optional
         run: |
           ssh -p "${{ secrets.SSH_PORT }}" "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "sudo /usr/sbin/nginx -t && sudo /bin/systemctl reload nginx || true"
+            "/usr/sbin/nginx -t && /bin/systemctl reload nginx || true"
