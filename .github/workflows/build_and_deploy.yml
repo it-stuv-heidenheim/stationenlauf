@@ -23,18 +23,10 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout for manual run
-        if: ${{ github.event_name == 'workflow_dispatch' }}
+      - name: Checkout
         uses: actions/checkout@v4
         with:
-          ref: ${{ inputs.branch }}
-          fetch-depth: 1
-
-      - name: Checkout for tag push
-        if: ${{ github.event_name == 'push' }}
-        uses: actions/checkout@v4
-        with:
-          ref: ${{ github.ref }}
+          ref: ${{ github.event_name == 'workflow_dispatch' && inputs.branch || github.ref }}
           fetch-depth: 1
 
       - name: Setup pnpm
@@ -42,20 +34,31 @@ jobs:
         with:
           version: 9
 
-      - name: Setup Node
+      # Use cache when lockfiles exist, avoids the root lockfile error
+      - name: Setup Node with pnpm cache
+        if: ${{ hashFiles('frontend/pnpm-lock.yaml', 'backend/pnpm-lock.yaml') != '' }}
         uses: actions/setup-node@v4
         with:
           node-version: "20"
-          cache: "pnpm"
+          cache: pnpm
+          cache-dependency-path: |
+            frontend/pnpm-lock.yaml
+            backend/pnpm-lock.yaml
 
-      # If your frontend has its own package.json in ./frontend
+      # Fallback when lockfiles are missing for any reason
+      - name: Setup Node without cache
+        if: ${{ hashFiles('frontend/pnpm-lock.yaml', 'backend/pnpm-lock.yaml') == '' }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      # No root install, installs are per app
       - name: Build frontend
         working-directory: ${{ env.FRONTEND_DIR }}
         run: |
           pnpm install --frozen-lockfile
           pnpm run build
 
-      # Build backend TS to dist, generate Prisma client in CI to catch issues early
       - name: Build backend
         working-directory: ${{ env.BACKEND_DIR }}
         run: |
@@ -104,7 +107,6 @@ jobs:
             SCP_CMD="scp -P $PORT -r"
             SSH_CMD="ssh -p $PORT"
           fi
-          # create target and upload dist, prisma, package files
           $SSH_CMD "$REMOTE" "mkdir -p ${{ secrets.BACKEND_TARGET_DIR }}"
           $SCP_CMD "${{ env.BACKEND_DIR }}/dist" "$REMOTE:${{ secrets.BACKEND_TARGET_DIR }}/"
           $SCP_CMD "${{ env.BACKEND_DIR }}/prisma" "$REMOTE:${{ secrets.BACKEND_TARGET_DIR }}/"
