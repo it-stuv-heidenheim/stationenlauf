@@ -1,0 +1,49 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Station {
+  id          String  @id @default(uuid())
+  name        String
+  lat         Float
+  lng         Float
+  description String?
+  tasks       Task[]
+
+  @@map("stations")
+}
+
+model Task {
+  id        String  @id @default(uuid())
+  stationId String
+  station   Station @relation(fields: [stationId], references: [id])
+
+  label String
+  // Replaces codePlain, auto generated UUID string
+  code  String @unique @default(uuid())
+
+  completed CompletedTask[]
+
+  @@index([stationId])
+  @@map("tasks")
+}
+
+model CompletedTask {
+  id     String @id @default(uuid())
+  taskId String
+  task   Task   @relation(fields: [taskId], references: [id])
+
+  user        String // arbitrary user identifier string
+  completedAt DateTime @default(now())
+
+  // Prevent duplicate completions per user per task
+  @@unique([taskId, user])
+  @@index([taskId])
+  @@map("completed_tasks")
+}

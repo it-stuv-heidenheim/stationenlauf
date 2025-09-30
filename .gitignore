@@ -1,4 +1,5 @@
 .idea
-node_modules
-.DS_Store
-dist
+.venv
+backend/prisma/dev.db
+backend/prisma/migrations
+backend/dist
