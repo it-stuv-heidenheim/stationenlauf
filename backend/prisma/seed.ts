@@ -16,7 +16,6 @@ const STATIONS = [
       { id: "3f9bc6ab-8d3f-443b-a028-64995bdfc9c5", code: "38643fbb-57b2-4fa5-8deb-41a77e13a7a2", label: "Studierndenwerk Ulm, EG Eingangshalle" },
       { id: "cd3ccec5-1d35-41c0-9acd-409ac1c5f860", code: "e00e248f-b550-4acf-82d2-97d5c382dbd8", label: "DHBW Hauptbibliothek, 4.OG M406" },
       { id: "6a08fd3c-7dbb-4587-bb3f-4d091d05aa50", code: "0f8a41ea-b525-4b90-92f9-87ae31cc9c97", label: "DHBW Studienberatung, 7.OG M729" },
-      { id: "565153f6-f3da-4971-a82c-66e1e45120fa", code: "35ec9a82-2b78-4fcb-8b87-e385ab17ea02", label: "Ersti Geschenk, 2.OG M203" }
     ]
   },
   {
@@ -48,10 +47,11 @@ const STATIONS = [
     lng: 10.155880680689945,
     description: "Löse alle 5 Aufgaben am Digitalcampus.",
     tasks: [
+      { id: "565153f6-f3da-4971-a82c-66e1e45120fa", code: "35ec9a82-2b78-4fcb-8b87-e385ab17ea02", label: "Ersti Geschenk, EG Aula" },
       { id: "6b3f54d8-0acf-4fc0-ad04-b0c31e0ed817", code: "0205d862-5f7e-40c1-8505-a5607ae96bc6", label: "IG Metall, EG Aula" },
       { id: "aceb7a6a-5959-44fe-8a73-d258b63e0ada", code: "ec0efab5-baff-4aee-bbf5-85e5f6aaaed0", label: "StuV Wünsch dir was, EG Aula" },
-      { id: "3d21c351-e57b-4f78-b096-d4e3f6941f18", code: "f215c0d1-0d7f-4154-a3d2-09c96f87fa3e", label: "Stuv Speeddating, Dachterasse" },
       { id: "d830dc8c-8a78-4e50-b236-ec7b00edd2ea", code: "6ce9abec-933f-4984-9a1d-26944e070a07", label: "Stadt Heidenheim, EG Aula" },
+      { id: "3d21c351-e57b-4f78-b096-d4e3f6941f18", code: "f215c0d1-0d7f-4154-a3d2-09c96f87fa3e", label: "Stuv Speeddating, Dachterasse" },
       { id: "4a8f4cdd-406a-4886-a3d7-b0180d1b7de7", code: "07edf222-b698-407b-a9b5-edde39de55fc", label: "Kulturbündnis" }
     ]
   }
