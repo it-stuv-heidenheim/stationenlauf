@@ -17,7 +17,7 @@ type ApiStation = {
 }
 
 export async function fetchStations(): Promise<Station[]> {
-  const res = await fetch(`${import.meta.env.VITE_API_URL ?? 'https://stationenlauf.stuv-heidenheim.de'}/api/v1/stations`, { headers: { "accept": "application/json" } })
+  const res = await fetch(`${import.meta.env.VITE_API_URL ?? 'https://dev.stationenlauf.stuv-heidenheim.de'}/api/v1/stations`, { headers: { "accept": "application/json" } })
   if (!res.ok) throw new Error(`Failed to load stations, ${res.status}`)
   const {data}: { data: ApiStation[] } = await res.json()
 
@@ -26,7 +26,7 @@ export async function fetchStations(): Promise<Station[]> {
 }
 
 export async function getProgress(uid: string) {
-  const res = await fetch(`${import.meta.env.VITE_API_URL ?? 'https://stationenlauf.stuv-heidenheim.de'}/api/v1/tasks/completed/${uid}`, {
+  const res = await fetch(`${import.meta.env.VITE_API_URL ?? 'https://dev.stationenlauf.stuv-heidenheim.de'}/api/v1/tasks/completed/${uid}`, {
   })
   const data: {[key: string]: true} = await res.json()
   return data
@@ -36,7 +36,7 @@ export async function markTaskAsCompleted(user: string, taskId: string, code: st
   console.log('Completing: ', JSON.stringify({ user, code }))
 
   const res = await fetch(
-    `${import.meta.env.VITE_API_URL ?? 'https://stationenlauf.stuv-heidenheim.de'}/api/v1/tasks/${taskId}/complete`,
+    `${import.meta.env.VITE_API_URL ?? 'https://dev.stationenlauf.stuv-heidenheim.de'}/api/v1/tasks/${taskId}/complete`,
     {
       method: "POST",
       headers: {
