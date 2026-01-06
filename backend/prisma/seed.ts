@@ -16,8 +16,8 @@ const STATIONS = [
       { id: "cd3ccec5-1d35-41c0-9acd-409ac1c5f860", code: "e00e248f-b550-4acf-82d2-97d5c382dbd8", label: "DHBW Hauptbibliothek, 4.OG M406" },
       { id: "6a08fd3c-7dbb-4587-bb3f-4d091d05aa50", code: "0f8a41ea-b525-4b90-92f9-87ae31cc9c97", label: "DHBW Studienberatung, 7.OG M729" },
         { id: "d3f954af-3ad4-4659-976c-671a274d19ec", code: "fb6dd0e2-fd6a-4cda-a9c5-504265c33f71", label: "Studierendenberatung, M728" },
-        { id: "d3f954au-3ad4-4659-976c-671a274d19ec", code: "fb6dd0e5-fd6a-4cda-a9c5-504265c33f71", label: "Druckerraum" },
-        { id: "d3f954au-3ad4-4659-976c-671a274d19ec", code: "fb6dd0e5-fd6a-4cda-a9c5-504265c33f71", label: "Mensa" },
+        { id: "d3f954bf-3ad4-4659-976c-671a274d19ec", code: "fb6dd0e5-fd6b-4cda-a9c5-504265c33f71", label: "Druckerraum" },
+        { id: "e4a1c2d8-9c3a-4f5b-9b44-8f1a6e9a2c31", code: "fb6dd0e5-fd6a-4cda-a9c5-504265c33f71", label: "Mensa" },
         { id: "565153f6-f3da-4971-a82c-66e1e45120fa", code: "35ec9a82-2b78-4fcb-8b87-e385ab17ea02", label: "Ersti Geschenk, EG Aula" },
         { id: "6b3f54d8-0acf-4fc0-ad04-b0c31e0ed817", code: "0205d862-5f7e-40c1-8505-a5607ae96bc6", label: "IG Metall, EG Foyer" },
         { id: "aceb7a6a-5959-44fe-8a73-d258b63e0ada", code: "ec0efab5-baff-4aee-bbf5-85e5f6aaaed0", label: "StuV Wünsch dir was + Speeddating,EG Foyer" },
@@ -58,18 +58,18 @@ const STATIONS = [
     ]
   },
     {
-        id: "5676be84-5ad4-47f1-b7eb-0f325cf2e023",
+        id: "5676be84-5ad4-47f1-b7eb-0f325cf2e033",
         name: "Digitalkampus",
         lat: 48.683904800409024,
         lng: 10.155805601698457,
         description: "DHBW Hanns-Voth Campus 1",
         tasks: [
-            { id: "3d21c351-e57b-4f78-b096-d4e3f6941f18", code: "f215c0d1-0d7f-4154-a3d2-09c96f86fa3e", label: "Finde die Dachterrasse" },
-            { id: "3d21c351-e67b-4f78-b096-d4e3f6941f18", code: "f215c0d1-0d7f-4164-a3d2-09c96f87fa3e", label: "Finde den Automatenraum" }
+            { id: "3d21c351-e57b-4f78-b096-d4e3f6941f19", code: "f215c0d1-0d7f-4154-a3d2-09c96f86fa3e", label: "Finde die Dachterrasse" },
+            { id: "3d21c351-e67b-4f78-b096-d4e3f6941f17", code: "f215c0d1-0d7f-4164-a3d2-09c96f87fa3e", label: "Finde den Automatenraum" }
         ]
     },
     {
-        id: "5676be84-5ad4-47f1-b7eb-0f325cf2e023",
+        id: "5676be84-5ad4-47f1-b7eb-0f325cf2e043",
         name: "Schlossarkaden",
         lat: 48.680016247193564,
         lng: 10.15327427762719,
