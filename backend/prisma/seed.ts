@@ -64,7 +64,7 @@ const STATIONS = [
         lng: 10.155805601698457,
         description: "DHBW Hanns-Voth Campus 1",
         tasks: [
-            { id: "3d21c351-e57b-4f78-b096-d4e3f6941f18", code: "f215c0d1-0d7f-4154-a3d2-09c96f87fa3e", label: "Finde die Dachterrasse" },
+            { id: "3d21c351-e57b-4f78-b096-d4e3f6941f18", code: "f215c0d1-0d7f-4154-a3d2-09c96f86fa3e", label: "Finde die Dachterrasse" },
             { id: "3d21c351-e67b-4f78-b096-d4e3f6941f18", code: "f215c0d1-0d7f-4164-a3d2-09c96f87fa3e", label: "Finde den Automatenraum" }
         ]
     },
